@@ -6,11 +6,10 @@ sub xfrm_asset_options {
     my ( $cb, $app, $tmpl ) = @_;
     my $slug;
     $slug = <<END_TMPL;
-<link rel="stylesheet" type="text/css" href="<mt:StaticWebPath>plugins/MaxImageWidth/app.css" />
-<link type="text/css" href="<mt:StaticWebPath>jquery/themes/flora/flora.all.css" rel="stylesheet" />
-<script type="text/javascript" src="<mt:StaticWebPath>plugins/MaxImageWidth/jquery-1.3.2.min.js"></script>
-<script type="text/javascript" src="<mt:StaticWebPath>plugins/MaxImageWidth/ui.core.js"></script>
-<script type="text/javascript" src="<mt:StaticWebPath>plugins/MaxImageWidth/ui.slider.js"></script>
+<link rel="stylesheet" type="text/css" href="<mt:var name="static_uri">plugins/MaxImageWidth/app.css" />
+<link rel="stylesheet" type="text/css" href="<mt:var name="static_uri">plugins/MaxImageWidth/css/ui-lightness/jquery-ui.css" />
+<script type="text/javascript" src="<mt:var name="static_uri">jqueryui/ui.core.js"></script>
+<script type="text/javascript" src="<mt:var name="static_uri">jqueryui/ui.slider.js"></script>
 END_TMPL
     $$tmpl =~ s{(<mt:setvarblock name="html_head" append="1">)}{$1 $slug}msi;
 
@@ -42,53 +41,54 @@ sub asset_options_param {
             help_page => "file_upload",
             help_section => "creating_thumbnails"
         }
-    ) or return $app->error('cannot create the su_twitter element');
+    ) or return $app->error('cannot create the thumbnail element');
     my $mt = ($param->{make_thumb} ? 'checked="checked"' : '');
     my $html = <<HTML;
 <script type="text/javascript">
     var full_width = $param->{width};
     var full_height = $param->{height};
     var max_width = $max_width;
-    \$(document).ready( function() {
-        \$('#thumb_width').change( function() {
-            var new_w = \$(this).val();
+    jQuery(document).ready( function() {
+        if (full_width > max_width) {
+             jQuery('#create_thumbnail').attr('checked', true);
+        }
+        jQuery('#thumb_width').change( function() {
+            var new_w = jQuery(this).val();
             if (new_w > max_width) {
-                \$(this).val( max_width );
+                jQuery(this).val( max_width );
             }
-            \$('#thumb_height').val( Math.floor( (full_height * \$(this).val() ) / full_width) );
-            \$('#width-slider').slider('option', 'value', \$(this).val());
+            jQuery('#thumb_height').val( Math.floor( (full_height * jQuery(this).val() ) / full_width) );
+            jQuery('#width-slider').slider('option', 'value', jQuery(this).val());
         });
-        \$('#thumb_height').change( function() {
-            var new_h = \$(this).val();
+        jQuery('#thumb_height').change( function() {
+            var new_h = jQuery(this).val();
             var new_w = Math.floor( (full_width * new_h ) / full_height );
             if (new_w > max_width) {
-                \$('#thumb_width').val( max_width ).trigger('change');
+                jQuery('#thumb_width').val( max_width ).trigger('change');
                 return;
             }
-            \$('#thumb_width').val( new_w );
-            \$('#width-slider').slider('option', 'value', new_w);
+            jQuery('#thumb_width').val( new_w );
+            jQuery('#width-slider').slider('option', 'value', new_w);
         });
-        \$('#width-slider').slider({ 
+        jQuery('#width-slider').slider({ 
           slide: function(event, ui) {
-              \$('#thumb_width').val( ui.value );
-              \$('#thumb_height').val( Math.floor( (full_height * ui.value ) / full_width) );
+              jQuery('#thumb_width').val( ui.value );
+              jQuery('#thumb_height').val( Math.floor( (full_height * ui.value ) / full_width) );
           },
           max: max_width
         });
-        \$('#width-slider').slider('value', max_width);
+        jQuery('#width-slider').slider('value', max_width);
         if (full_width > max_width) {
-            \$('#thumb_width').trigger('change');
+            jQuery('#thumb_width').trigger('change');
         }
     });
 </script>
         <div id="create_thumbnail_cb">
           <input type="checkbox" name="thumb" id="create_thumbnail" value="1" $mt />
-          <label for="create_thumbnail">Use thumbnail?</label>
+          <label for="create_thumbnail"><__trans_section component="MaxImageWidth"><__trans phrase='Use thumbnail?'></__trans_section></label>
         </div>
         <div id="w-h">
-          <input type="text" id="thumb_width" size="3" name="thumb_width" value="$param->{width}" />
-          x
-          <input type="text" id="thumb_height" size="3" name="thumb_height" value="$param->{height}" />
+          <input type="text" id="thumb_width" size="3" name="thumb_width" value="$param->{width}" /> x <input type="text" id="thumb_height" size="3" name="thumb_height" value="$param->{height}" />
         </div>
         <div id="width-slider"></div>
 HTML

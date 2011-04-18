@@ -1,15 +1,14 @@
 id: MaxImageWidth
 name: 'Max Image Width'
-description: 'Limit uploaded photos to a maximum width and provide users with a way to easily scale the image to smaller width.'
-version: 0.9.1
+description: <__trans phrase='Limit uploaded photos to a maximum width and provide users with a way to easily scale the image to smaller width.'>
+version: 0.9.2
+l10n_class: MaxImageWidth::L10N
 
-options:
+blog_config_template: tmpl/blog_config.tmpl
+settings:
   max_image_width:
-    label: Max Width
-    type: text
+    default: 600
     scope: blog
-
 callbacks:
   MT::App::CMS::template_source.asset_options: $MaxImageWidth::MaxImageWidth::Plugin::xfrm_asset_options
   MT::App::CMS::template_param.asset_options_image: $MaxImageWidth::MaxImageWidth::Plugin::asset_options_param
-
