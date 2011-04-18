@@ -7,9 +7,14 @@
 }
 #width-slider {
   float: left;
-  width: 200px;
+  margin: 1em;
+  width: 24em;
 }
 #w-h {
-  width: 120px;
+  width: 20em;
   float: left;
+}
+#thumb_width,
+#thumb_height {
+  width: 8em;
 }
