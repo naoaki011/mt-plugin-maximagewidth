@@ -4,15 +4,19 @@ use strict;
 
 sub xfrm_asset_options {
     my ( $cb, $app, $tmpl ) = @_;
-    my $slug;
-    $slug = <<END_TMPL;
+    my $blog          = $app->blog;
+    my $plugin        = MT->component('MaxImageWidth');
+    my $config        = $plugin->get_config_hash( 'blog:' . $blog->id );
+    if ($config->{max_image_width}) {
+        my $slug;
+        $slug = <<END_TMPL;
 <link rel="stylesheet" type="text/css" href="<mt:var name="static_uri">plugins/MaxImageWidth/app.css" />
 <link rel="stylesheet" type="text/css" href="<mt:var name="static_uri">plugins/MaxImageWidth/css/ui-lightness/jquery-ui.css" />
 <script type="text/javascript" src="<mt:var name="static_uri">jqueryui/ui.core.js"></script>
 <script type="text/javascript" src="<mt:var name="static_uri">jqueryui/ui.slider.js"></script>
 END_TMPL
-    $$tmpl =~ s{(<mt:setvarblock name="html_head" append="1">)}{$1 $slug}msi;
-
+        $$tmpl =~ s{(<mt:setvarblock name="html_head" append="1">)}{$1 $slug}msi;
+    }
 }
 
 sub asset_options_param {
@@ -25,32 +29,33 @@ sub asset_options_param {
     my $config        = $plugin->get_config_hash( 'blog:' . $blog->id );
 
     my $max_width     = $config->{max_image_width};
-    $max_width ||= $param->{width};
+    if ($max_width) {
+        $max_width ||= $param->{width};
 
-    my $ct_field = $tmpl->getElementById('create_thumbnail')
-      or return $app->error('cannot get the create thumbnail block');
-    my $new_field = $tmpl->createElement(
-        'app:setting',
-        {
-            id    => 'create_thumbnail2',
-            class => '',
-            label => $app->translate("Use thumbnail"),
-            label_class => "no-header",
-            hint => "",
-            show_hint => "0",
-            help_page => "file_upload",
-            help_section => "creating_thumbnails"
-        }
-    ) or return $app->error('cannot create the thumbnail element');
-    my $mt = ($param->{make_thumb} ? 'checked="checked"' : '');
-    my $html = <<HTML;
+        my $ct_field = $tmpl->getElementById('create_thumbnail')
+          or return $app->error('cannot get the create thumbnail block');
+        my $new_field = $tmpl->createElement(
+            'app:setting',
+            {
+                id    => 'create_thumbnail2',
+                class => '',
+                label => $app->translate("Use thumbnail"),
+                label_class => "no-header",
+                hint => "",
+                show_hint => "0",
+                help_page => "file_upload",
+                help_section => "creating_thumbnails"
+                }
+        ) or return $app->error('cannot create the thumbnail element');
+        my $mt = ($param->{make_thumb} ? 'checked="checked"' : '');
+        my $html = <<HTML;
 <script type="text/javascript">
     var full_width = $param->{width};
     var full_height = $param->{height};
     var max_width = $max_width;
     jQuery(document).ready( function() {
         if (full_width > max_width) {
-             jQuery('#create_thumbnail').attr('checked', true);
+             jQuery('#create_thumbnail').attr('checked', true).click(function(event){ jQuery(this).attr('checked', true); });
         }
         jQuery('#thumb_width').change( function() {
             var new_w = jQuery(this).val();
@@ -92,12 +97,13 @@ sub asset_options_param {
         </div>
         <div id="width-slider"></div>
 HTML
-    $new_field->innerHTML($html);
-    $tmpl->insertAfter( $new_field, $ct_field )
+        $new_field->innerHTML($html);
+        $tmpl->insertAfter( $new_field, $ct_field )
       or return $app->error('failed to insertAfter.');
-    $ct_field->innerHTML('');
+        $ct_field->innerHTML('');
 
-    $param;
+        $param;
+    }
 }
 
 1;
